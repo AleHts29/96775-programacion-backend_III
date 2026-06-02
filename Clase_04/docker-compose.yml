@@ -1,0 +1,38 @@
+services:
+  app:
+    build: . # usa el Dockerfile del directorio actual
+    container_name: node-app
+    restart: unless-stopped # se reinicia solo si crashea (salvo que lo pares a mano)
+    ports:
+      - "9090:9090" # coincide con el EXPOSE de tu Dockerfile
+    environment:
+      - PORT=9090
+      - MONGO_URL=mongodb://mongo:27017/mi_base # "mongo" = nombre del servicio de abajo
+    depends_on:
+      mongo:
+        condition: service_healthy # espera a que Mongo esté listo antes de arrancar
+    networks:
+      - app-net
+
+  mongo:
+    image: mongo:5.0.14
+    container_name: mongodb
+    restart: unless-stopped # se reinicia solo si crashea (salvo que lo pares a mano)
+    ports:
+      - "27017:27017" # opcional: solo si querés conectarte desde tu máquina (Compass, etc.)
+    volumes:
+      - mongo-data:/data/db # persiste los datos aunque borres el contenedor
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s # margen para el primer arranque de Mongo antes de contar fallos
+    networks:
+      - app-net
+
+volumes:
+  mongo-data:
+
+networks:
+  app-net:
