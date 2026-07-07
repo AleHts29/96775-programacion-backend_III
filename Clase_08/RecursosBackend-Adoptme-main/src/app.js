@@ -18,7 +18,8 @@ const connection = mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${p
     useUnifiedTopology: true
 });
 
-
+app.use(express.json());
+app.use(cookieParser());
 
 const swaggerOptions = {
     definition: {
@@ -36,8 +37,9 @@ const specs = swaggerJSDoc(swaggerOptions);
 app.use('/docs', swaggerUIExpress.serve, swaggerUIExpress.setup(specs));
 
 
-app.use(express.json());
-app.use(cookieParser());
+app.get('/', (req, res) => {
+    res.send('Bienvenido a la API de AdoptMe');
+});
 
 app.use('/api/users', usersRouter);
 app.use('/api/pets', petsRouter);
